@@ -22,9 +22,12 @@ jobs:
           known_hosts: 'place-holder-but-handled-in-above-step'
       - name: Check out repository code
         uses: actions/checkout@v3
+          path: ./${{ github.repository }}
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - run: ls -al
       - name: Set Cloud flare email
-        run: sed -i 's/CLOUDFLARE_EMAIL/${{ secrets.CASTLE_MANAGER_CLOUDFLARE_EMAIL }}/g' main.tf
-      - run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} 
+        run: sed -i 's/CLOUDFLARE_EMAIL/${{ secrets.CASTLE_MANAGER_CLOUDFLARE_EMAIL }}/g' ./${{ github.repository }}/main.tf
+      - name: Rsync cluster config to VM
+        run: rsync -a ./${{ github.repository }}/ ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }}:/home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/${{ github.repository }}
+      - run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} ls -l
       - run: echo "🍏 This job's status is ${{ job.status }}."
