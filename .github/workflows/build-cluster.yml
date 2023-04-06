@@ -22,6 +22,7 @@ jobs:
           known_hosts: 'place-holder-but-handled-in-above-step'
       - name: Check out repository code
         uses: actions/checkout@v3
+        with:
           path: ./${{ github.repository }}
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - run: ls -al
