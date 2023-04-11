@@ -28,6 +28,7 @@ jobs:
       - run: ls -al
       - name: Set Cloud flare email
         run: sed -i 's/CLOUDFLARE_EMAIL/${{ secrets.CASTLE_MANAGER_CLOUDFLARE_EMAIL }}/g' ./${{ github.repository }}/main.tf
+      - run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "mkdir -p /home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/acenet-arc/"
       - name: Rsync cluster config to VM
         run: rsync -a ./${{ github.repository }}/ ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }}:/home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/${{ github.repository }}
       - run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "ls -l && source cloudflare-api-token.sh && source app-cred-castle-manager-openrc.sh && openstack server list && cd ${{ github.repository }} && ls -l && terraform init && terraform plan && terraform apply -auto-approve"
