@@ -1,8 +1,8 @@
-name: GitHub Actions Demo
+name: Initial cluster build
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  Initial-Cluster-Build:
     runs-on: ubuntu-latest
     steps:
       - name: Print Job Info
@@ -30,5 +30,10 @@ jobs:
         run: sed -i 's/CLOUDFLARE_EMAIL/${{ secrets.CASTLE_MANAGER_CLOUDFLARE_EMAIL }}/g' ./${{ github.repository }}/main.tf
       - name: Rsync cluster config to VM
         run: rsync -a ./${{ github.repository }}/ ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }}:/home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/${{ github.repository }}
-      - run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} ls -l
+      - run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} << EOF
+          ls -l
+          source cloudflare-api-token.sh
+          source app-cred-castle-manager-openrc.sh
+          openstack server list
+          EOF
       - run: echo "🍏 This job's status is ${{ job.status }}."
