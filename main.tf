@@ -12,8 +12,8 @@ module "openstack" {
   config_git_url = "https://github.com/ComputeCanada/puppet-magic_castle.git"
   config_version = "12.3.0"
 
-  cluster_name = "test"
-  domain       = "ace-net.training"
+  cluster_name = "test16"
+  domain       = "DOMAIN_NAME"
   image        = "Rocky-8.7-x64-2023-02"
 
   instances = {
@@ -75,6 +75,6 @@ module "dns" {
 #   sudoer_username  = module.openstack.accounts.sudoer.username
 # }
 
-# output "hostnames" {
-#   value = module.dns.hostnames
-# }
+output "hostnames" {
+  value = module.dns.hostnames
+}
