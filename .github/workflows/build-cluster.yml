@@ -28,10 +28,12 @@ jobs:
       - run: ls -al
       - name: Set Cloud flare email in config
         run: sed -i 's/CLOUDFLARE_EMAIL/${{ secrets.CASTLE_MANAGER_CLOUDFLARE_EMAIL }}/g' ./${{ github.repository }}/main.tf
+      - name: Set domain name in config
+        run: sed -i 's/DOMAIN_NAME/${{ secrets.CASTLE_MANAGER_DOMAIN_NAME }}/g' ./${{ github.repository }}/main.tf
       - name: Create directory to put MC cluster config into if doesn't already exist
         run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "mkdir -p /home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/acenet-arc/"
       - name: Rsync MC cluster config to VM
         run: rsync -a ./${{ github.repository }}/ ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }}:/home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/${{ github.repository }}
       - name: Create or Update MC cluster based on rsynced config
-        run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "ls -l && eval `ssh-agent` && ssh-add && source cloudflare-api-token.sh && source app-cred-castle-manager-openrc.sh && openstack server list && cd ${{ github.repository }} && ls -l && terraform init && terraform plan && terraform apply -auto-approve"
+        run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "ls -l && eval \`ssh-agent\` && ssh-add && source cloudflare-api-token.sh && source app-cred-castle-manager-openrc.sh && openstack server list && cd ${{ github.repository }} && ls -l && terraform init && terraform plan && terraform apply -auto-approve"
       - run: echo "🍏 This job's status is ${{ job.status }}."
