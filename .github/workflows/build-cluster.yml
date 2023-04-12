@@ -13,23 +13,25 @@ jobs:
 
       - name: Make .ssh directory
         run: mkdir ~/.ssh
-      - name: Adding VM to Known Hosts
+      - name: Adding catle-manager VM to Known Hosts
         run: ssh-keyscan -H ${{ secrets.CASTLE_MANAGER_VM_IP }} >> ~/.ssh/known_hosts
-      - name: Install SSH Key
+      - name: Install SSH Key to runner environment
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.CASTLE_MANAGER_PRIVATE_KEY }}
           known_hosts: 'place-holder-but-handled-in-above-step'
-      - name: Check out repository code
+      - name: Check out repository code with MC cluster config
         uses: actions/checkout@v3
         with:
           path: ./${{ github.repository }}
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - run: ls -al
-      - name: Set Cloud flare email
+      - name: Set Cloud flare email in config
         run: sed -i 's/CLOUDFLARE_EMAIL/${{ secrets.CASTLE_MANAGER_CLOUDFLARE_EMAIL }}/g' ./${{ github.repository }}/main.tf
-      - run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "mkdir -p /home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/acenet-arc/"
-      - name: Rsync cluster config to VM
+      - name: Create directory to put MC cluster config into if doesn't already exist
+        run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "mkdir -p /home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/acenet-arc/"
+      - name: Rsync MC cluster config to VM
         run: rsync -a ./${{ github.repository }}/ ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }}:/home/${{ secrets.CASTLE_MANAGER_USER_NAME }}/${{ github.repository }}
-      - run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "ls -l && source cloudflare-api-token.sh && source app-cred-castle-manager-openrc.sh && openstack server list && cd ${{ github.repository }} && ls -l && terraform init && terraform plan && terraform apply -auto-approve"
+      - name: Create or Update MC cluster based on rsynced config
+        run: ssh ${{ secrets.CASTLE_MANAGER_USER_NAME }}@${{ secrets.CASTLE_MANAGER_VM_IP }} "ls -l && eval `ssh-agent` && ssh-add && source cloudflare-api-token.sh && source app-cred-castle-manager-openrc.sh && openstack server list && cd ${{ github.repository }} && ls -l && terraform init && terraform plan && terraform apply -auto-approve"
       - run: echo "🍏 This job's status is ${{ job.status }}."
